@@ -14,10 +14,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
 
       - run: npm ci
 
+      - run: npx fumadocs-mdx
+
       - run: npm run build
+
+      - run: node scripts/generate-search-index.mjs
 
       - id: version
         run: echo "version=$(node -p 'require("./package.json").version')" >> $GITHUB_OUTPUT
