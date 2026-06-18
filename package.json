@@ -1,6 +1,6 @@
 {
   "name": "dev.jsos.docs",
-  "version": "1.1.8",
+  "version": "1.1.9",
   "private": true,
   "type": "module",
   "sideEffects": false,
@@ -10,6 +10,7 @@
     "start": "waku start",
     "types:check": "fumadocs-mdx && tsc --noEmit",
     "postinstall-removed": "fumadocs-mdx",
+    "git:tag": "node -e \"const v=require('./package.json').version;const{execSync}=require('child_process');execSync('git tag v'+v+' && git push origin v'+v,{stdio:'inherit'});console.log('Tagged and pushed v'+v)\"",
     "jsh:install": "(cd node_modules >/dev/null 2>&1) || npm install",
     "jsh:start": "node server.js"
   },
