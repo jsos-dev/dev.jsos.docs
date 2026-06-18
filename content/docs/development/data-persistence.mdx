@@ -1,0 +1,62 @@
+---
+title: 数据持久化
+description: 应用数据的读写、存储和同步
+icon: Database
+---
+
+# 数据持久化
+
+## DATA_DIR
+
+每个应用启动时自动创建专属数据目录，通过环境变量 `DATA_DIR` 访问：
+
+```javascript
+const dataDir = process.env.DATA_DIR;
+// 例如：/home/{user}/workspace/data/my-app
+```
+
+你可以在这个目录下读写任何文件，这些文件会被自动同步到浏览器的 IndexedDB 中。下次刷新页面或重新打开应用时，数据自动恢复。
+
+```javascript
+import { writeFile, readFile, mkdir } from 'fs/promises';
+import { join } from 'path';
+
+// 写数据
+const dataPath = join(process.env.DATA_DIR, 'data.json');
+await writeFile(dataPath, JSON.stringify({ hello: 'world' }));
+
+// 读数据
+const data = JSON.parse(await readFile(dataPath, 'utf-8'));
+```
+
+## 数据同步机制
+
+写入 `DATA_DIR` 的文件会自动：
+
+1. 被 `fs.watch` 检测到变更
+2. 1 秒防抖后导出为二进制快照
+3. 存入 IndexedDB `shared-data-snapshots` store
+4. 页面刷新时自动恢复
+
+整个过程是自动的，你只管读写文件即可。
+
+## APP_DIR
+
+`APP_DIR` 指向应用代码目录。一般不需要往这里写数据，但可以读取：
+
+```javascript
+const packageJson = await readFile(join(process.env.APP_DIR, 'package.json'), 'utf-8');
+```
+
+## 卸载时保留/删除数据
+
+卸载应用时可以选择：
+
+- **保留数据** — 数据仍在 IndexedDB 中，重装后可用
+- **删除数据** — 清理数据目录
+
+## 注意事项
+
+- 数据存储在**浏览器本地**（IndexedDB），清除浏览器数据会丢失
+- 数据容量受 IndexedDB 限制（通常为浏览器可用空间的 50%）
+- 不同应用之间的数据隔离，互不干扰

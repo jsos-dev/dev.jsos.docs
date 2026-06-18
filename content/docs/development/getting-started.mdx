@@ -1,0 +1,119 @@
+---
+title: 开发入门
+description: 5 分钟创建一个 JSOS 应用
+icon: Rocket
+---
+
+# 开发入门
+
+JSOS 应用本质上就是一个运行在 WebContainer 中的 **Node.js 程序**。你可以把它简单地理解为一台远端服务器上的 Node.js 项目——只不过这台服务器就在你的浏览器里。
+
+## 两种应用类型
+
+| 类型 | 说明 | 场景 |
+|------|------|------|
+| **GUI** | 启动 Web 服务，iframe 显示界面 | 任何需要图形界面的应用 |
+| **CLI** | 直接跑命令，终端窗口交互 | 命令行工具、脚本 |
+
+## 最简单的 GUI 应用
+
+创建一个目录，里面放两个文件：
+
+### `package.json`
+
+```json
+{
+  "name": "hello-jsos",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "jsos": {
+    "id": "hello-jsos",
+    "name": "Hello JSOS",
+    "description": "我的第一个 JSOS 应用",
+    "startCommand": "node server.js",
+    "installCommand": "npm install"
+  }
+}
+```
+
+### `server.js`
+
+```javascript
+import express from 'express';
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head><title>Hello</title></head>
+      <body style="background:#1e1e2e;color:#cdd6f4;padding:40px;font-family:system-ui">
+        <h1>Hello JSOS!</h1>
+      </body>
+    </html>
+  `);
+});
+
+app.listen(port, () => console.log(`running on ${port}`));
+```
+
+### 打包安装
+
+```bash
+zip -r hello-jsos.zip package.json server.js
+```
+
+然后右键桌面 → 安装应用，选择 ZIP 包即可安装。安装完成后桌面会出现图标，点击图标即可运行。
+
+## 最简单的 CLI 应用
+
+### `package.json`
+
+```json
+{
+  "name": "hello-cli",
+  "version": "1.0.0",
+  "type": "module",
+  "jsos": {
+    "id": "hello-cli",
+    "name": "Hello CLI",
+    "type": "cli",
+    "startCommand": "node cli.js"
+  }
+}
+```
+
+### `cli.js`
+
+```javascript
+console.log('Hello JSOS CLI!');
+console.log('输入点什么吧：');
+
+process.stdin.on('data', data => {
+  const input = data.toString().trim();
+  console.log(`你输入了: ${input}`);
+});
+```
+
+同样打包成 ZIP 安装，点击打开会看到一个终端窗口，直接和你的程序交互。
+
+## 字段速查
+
+`package.json` 中的 `jsos` 字段只需三个必填项：
+
+| 字段 | 说明 |
+|------|------|
+| `id` | 唯一标识（如 `my-app`） |
+| `name` | 应用显示名称 |
+| `startCommand` | 启动命令（如 `node server.js`） |
+
+其他所有字段都是可选的——够简单吧？
+
+## 后续
+
+- 想深入了解 GUI 应用？→ [GUI 应用开发](/docs/development/gui-apps)
+- 想了解 CLI 应用？→ [CLI 应用开发](/docs/development/cli-apps)
+- 所有配置字段 → [清单配置参考](/docs/reference/app-manifest)

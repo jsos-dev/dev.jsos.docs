@@ -1,0 +1,57 @@
+---
+title: 最佳实践
+description: 开发 JSOS 应用的建议和技巧
+icon: Code
+---
+
+# 最佳实践
+
+## 应用开发
+
+### 使用 process.env.PORT
+
+GUI 应用**始终**使用 `process.env.PORT` 获取端口，不要硬编码。
+
+```javascript
+// ✅ 正确
+const port = process.env.PORT;
+app.listen(port);
+
+// ❌ 错误
+app.listen(3000);
+```
+
+### 数据写到 DATA_DIR
+
+需要持久化的数据请写入 `process.env.DATA_DIR`。系统会自动同步保存，刷新页面不丢失。
+
+### 处理交互式输入
+
+CLI 应用注意处理 `stdin` 的 `data` 事件。进程退出后终端仍然可见，用户可以看到最终的输出。
+
+### 小组件 URL 设计
+
+小组件的 `url` 指向应用提供的任意 Web 页面，通过路由区分小组件视图与主界面，两者共享同一份数据。
+
+## 性能
+
+- 应用体积尽量小，加快上传和启动速度
+- `installCommand` 只安装必要的依赖
+- 避免频繁的大文件写入操作
+
+## 错误处理
+
+```javascript
+try {
+  await window.JSOS.notify({ title: '测试' });
+} catch (err) {
+  console.error('通知发送失败:', err.message);
+}
+```
+
+## 用户体验
+
+- 提供合适的 `defaultWidth` / `defaultHeight`
+- 使用有辨识度的图标
+- 多语言场景提供 `name` / `description` 的多语言版本
+- 启动时如有耗时操作，可在前端页面显示加载状态

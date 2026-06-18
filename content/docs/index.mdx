@@ -1,0 +1,62 @@
+---
+title: 概览
+description: JSOS 是什么、谁能用、能做什么
+icon: BookOpen
+---
+
+# JSOS 是什么？
+
+JSOS 是一个运行在**浏览器里的操作系统**。不，这不是某个"在线模拟器"或者"假装是桌面"的玩具——它是真实的、可运行的 Node.js 环境，直接跑在你的浏览器标签页里。
+
+你可以在 JSOS 上：
+
+- 打开一个真实的 **Linux 终端**（sh shell）
+- 运行 **Node.js REPL**
+- **开发、安装、运行**你自己的 Web 应用
+- 像桌面系统一样**管理多个窗口**、切换工作区、设置壁纸
+
+这一切的核心技术是 [WebContainer](https://webcontainers.io/)——在浏览器中完整运行 Node.js 的神奇技术。
+
+## 适合谁用？
+
+JSOS 主要面向**前端开发者**：
+
+- 想**快速原型**一个前端/后端应用，不想在本地搭环境
+- 想**分享**自己的作品给朋友，对方点开就能用
+- 想**学习** Node.js 或前端框架，但不想折腾环境配置
+- 想**在浏览器里写代码、跑服务、看效果**一气呵成
+
+## 快速上手
+
+<Cards>
+  <Card title="5 分钟上手" href="/docs/guide/quickstart" icon="Rocket">
+    第一次使用？从启动应用开始
+  </Card>
+  <Card title="安装应用" href="/docs/guide/installing-apps" icon="Package">
+    通过右键菜单安装第三方应用
+  </Card>
+  <Card title="开发你的第一个应用" href="/docs/development/getting-started" icon="Code">
+    只需要一个 package.json + 几行代码
+  </Card>
+  <Card title="应用打包" href="/docs/packaging/packaging-guide" icon="FileText">
+    打包分享给其他用户
+  </Card>
+  <Card title="JSOS API 参考" href="/docs/reference/jsos-api" icon="Plug">
+    应用通过 window.JSOS 调用系统 API
+  </Card>
+  <Card title="限制与注意事项" href="/docs/limitations/webcontainer-limits" icon="Zap">
+    了解 WebContainer 能做什么、不能做什么
+  </Card>
+</Cards>
+
+## 核心特性
+
+| 特性 | 说明 |
+|------|------|
+| **多窗口桌面** | 同时运行多个应用，自由拖拽、调整窗口大小 |
+| **工作区** | 多个桌面空间，工作娱乐分开 |
+| **小组件** | 桌面浮动小面板，快速查看信息 |
+| **终端仿真** | 基于 xterm.js 的完整终端体验 |
+| **暗色/亮色主题** | 跟随系统或手动切换 |
+| **多语言** | 中文、英文界面 |
+| **应用市场** | 内置应用 + 第三方应用安装 |

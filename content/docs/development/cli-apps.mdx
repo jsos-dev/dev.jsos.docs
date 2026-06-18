@@ -1,0 +1,89 @@
+---
+title: CLI 应用开发
+description: 开发命令行工具应用
+icon: Terminal
+---
+
+# CLI 应用开发
+
+CLI 应用没有图形界面，整个窗口就是终端。适用于命令行工具、脚本、交互式程序等。
+
+## 生命周期
+
+```
+点击图标
+  ↓
+创建终端窗口
+  ↓
+挂载文件到 WebContainer
+  ↓
+执行 installCommand（如有）
+  ↓
+执行 startCommand
+  ↓
+终端交互（stdin / stdout）
+  ↓
+进程退出 / 关闭窗口 → 终止
+```
+
+## 进程行为
+
+- 每次打开 CLI 应用创建**独立进程**，互不影响
+- 关闭窗口时终止进程
+- 进程退出后终端保持可见，底部显示退出状态（退出码 + 重启 / 关闭按钮）
+- 非零退出码时输出红色提醒
+
+## 示例
+
+### 交互式问答
+
+```javascript
+import { createInterface } from 'readline';
+
+const rl = createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+rl.question('你叫什么名字？', (name) => {
+  console.log(`你好，${name}！`);
+  rl.close();
+});
+```
+
+### 使用 chalk 美化输出
+
+```json
+{
+  "dependencies": {
+    "chalk": "^5.0.0"
+  },
+  "jsos": {
+    "id": "color-tool",
+    "name": "Color Tool",
+    "type": "cli",
+    "startCommand": "node index.js",
+    "installCommand": "npm install"
+  }
+}
+```
+
+```javascript
+import chalk from 'chalk';
+
+console.log(chalk.green('✓ 成功'));
+console.log(chalk.red('✗ 失败'));
+console.log(chalk.blue('ℹ 信息'));
+```
+
+## 适用场景
+
+CLI 应用适合：
+
+- **数据处理脚本**
+- **文件操作工具**
+- **API 调用和测试**
+- **学习 Node.js/JavaScript**
+- **运行开发工具、脚手架**
+
+> 提示：CLI 应用也同样可以使用 `DATA_DIR` 环境变量来读写持久化数据。

@@ -1,0 +1,438 @@
+---
+title: JSOS API 参考
+description: window.JSOS 系统 API 完整参考
+icon: Plug
+---
+
+# JSOS API 参考
+
+GUI 应用**的前端页面**（iframe 中的浏览器环境）可以通过 `window.JSOS` 调用系统功能。注意：这是在浏览器前端调用，**而非 Node.js 后端**。
+
+> **推荐：** 建议使用 **React** + **coss-ui** 组件库开发 GUI 应用，界面风格与系统 UI 更加统一。coss-ui 是与 JSOS 系统组件同源的组件库，提供按钮、对话框、菜单、输入框等基础组件。
+
+## 使用方式
+
+```javascript
+await window.JSOS.toast({ title: '操作成功', type: 'success' });
+const apps = await window.JSOS.getApps();
+await window.JSOS.openApp('dev.jsos.terminal');
+```
+
+## 通知
+
+### `toast(options)`
+
+显示系统 Toast 通知。
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `title` | string | ✓ | 标题 |
+| `description` | string | - | 描述 |
+| `type` | string | - | `default` \| `success` \| `error` \| `info` \| `warning` |
+| `timeout` | number | - | 显示时长(ms)，0 则不自动关闭 |
+
+```javascript
+await window.JSOS.toast({ title: '保存成功', type: 'success' });
+await window.JSOS.toast({ title: '出错了', description: '请重试', type: 'error', timeout: 5000 });
+```
+
+### `notify(options)`
+
+发送浏览器系统通知。
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `title` | string | ✓ | 标题 |
+| `body` | string | - | 内容 |
+| `icon` | string | - | 图标 URL |
+
+```javascript
+await window.JSOS.notify({ title: '下载完成', body: '文件已就绪' });
+```
+
+首次调用会请求通知权限。
+
+## 应用管理
+
+### `getApps()`
+
+获取已安装应用列表。
+
+```javascript
+const apps = await window.JSOS.getApps();
+// [{ id, name, icon, version, type, isSystem, isRunning, widgets }]
+```
+
+### `getAppInfo(appId)`
+
+获取应用详情。
+
+```javascript
+const info = await window.JSOS.getAppInfo('my-app');
+// { id, name, description, icon, version, type, isSystem, port, isRunning, serverUrl }
+```
+
+### `openApp(appId, options?)`
+
+打开应用。
+
+```javascript
+// 简单打开
+await window.JSOS.openApp('terminal-app');
+
+// 带路由（仅 GUI 应用）
+await window.JSOS.openApp('dev.jsos.settings', {
+  route: '/wallpaper',
+  params: { workspaceId: 'home' }
+});
+```
+
+`route` 和 `params` 会拼接到 iframe URL 的 hash 中：`/#/wallpaper?workspaceId=home`
+
+### `openAppWithArgs(appId, options?)`
+
+打开应用并传递自定义启动参数。主要用于 CLI 应用，允许自定义启动命令和环境变量。
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `appId` | string | ✓ | 应用 ID |
+| `options.startCommand` | string | - | 自定义启动命令，覆盖 manifest 中的 `startCommand` |
+| `options.env` | object | - | 额外环境变量（不能覆盖 `DATA_DIR`/`APP_DIR`/`PORT`/`LANG`） |
+
+```javascript
+// 打开终端并进入指定目录
+await window.JSOS.openAppWithArgs('dev.jsos.terminal', {
+  startCommand: `/bin/jsh -c "cd '/home/user/workspace' && /bin/jsh"`
+});
+
+// 打开终端并传递自定义环境变量
+await window.JSOS.openAppWithArgs('dev.jsos.terminal', {
+  startCommand: `/bin/jsh -c "cd /tmp && ls && /bin/jsh"`,
+  env: { MY_VAR: 'hello' }
+});
+```
+
+> **注意：** `options.env` 不能覆盖系统变量 `DATA_DIR`、`APP_DIR`、`PORT`、`LANG`。
+
+### `closeApp(appId)`
+
+关闭应用所有窗口。
+
+```javascript
+await window.JSOS.closeApp('my-app');
+```
+
+### `isAppRunning(appId)`
+
+检查应用是否运行。
+
+```javascript
+const { running } = await window.JSOS.isAppRunning('my-app');
+```
+
+## 工作区
+
+### `getWorkspaces()`
+
+```javascript
+const workspaces = await window.JSOS.getWorkspaces();
+// [{ id, name, type }]
+```
+
+### `getCurrentWorkspace()`
+
+```javascript
+const ws = await window.JSOS.getCurrentWorkspace();
+```
+
+### `switchWorkspace(id)`
+
+```javascript
+await window.JSOS.switchWorkspace('ws-123');
+```
+
+### `createWorkspace(name)`
+
+```javascript
+const { id } = await window.JSOS.createWorkspace('工作');
+```
+
+### `deleteWorkspace(id)`
+
+```javascript
+await window.JSOS.deleteWorkspace('ws-123');
+```
+
+### `renameWorkspace(id, name)`
+
+```javascript
+await window.JSOS.renameWorkspace('ws-123', '新名称');
+```
+
+## 壁纸
+
+### `getWallpaper(workspaceId?)`
+
+```javascript
+const wallpaper = await window.JSOS.getWallpaper();
+// { type, dataUrl, mimeType, overlay, overlayOpacity, blur }
+```
+
+### `setWallpaper(config)`
+
+```javascript
+await window.JSOS.setWallpaper({
+  type: 'image',
+  data: 'base64data...',
+  mimeType: 'image/jpeg',
+  overlay: 'rgba(0,0,0,0.3)',
+  overlayOpacity: 30,
+  blur: 5
+});
+```
+
+### `resetWallpaper(workspaceId?)`
+
+```javascript
+await window.JSOS.resetWallpaper();
+```
+
+## 语言
+
+### `getLocale()`
+
+```javascript
+const lang = await window.JSOS.getLocale(); // 'zh-CN' / 'en'
+```
+
+### `setLocale(lang)`
+
+```javascript
+await window.JSOS.setLocale('en');
+```
+
+## 主题
+
+### `getTheme()`
+
+返回当前有效主题（`'light'` 或 `'dark'`）。
+
+```javascript
+const theme = await window.JSOS.getTheme();
+```
+
+### `setTheme(mode)`
+
+```javascript
+await window.JSOS.setTheme('dark');   // 暗色
+await window.JSOS.setTheme('light');  // 亮色
+await window.JSOS.setTheme('system'); // 跟随系统
+```
+
+## 事件监听
+
+### `onLocaleChange(callback)`
+
+监听语言切换。
+
+```javascript
+const unsub = window.JSOS.onLocaleChange((locale) => {
+  // locale: 'zh-CN' | 'en'
+});
+// 取消监听
+unsub();
+```
+
+### `onThemeChange(callback)`
+
+监听主题切换。
+
+```javascript
+window.JSOS.onThemeChange((theme) => {
+  // theme: 'light' | 'dark'
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+});
+```
+
+## 小组件
+
+### `addWidget(appId, widgetId, options?)`
+
+```javascript
+await window.JSOS.addWidget('my-app', 'todo-list', { x: 300, y: 200 });
+```
+
+## 安装相关
+
+> 以下 API 主要供应用管理器内部使用。
+
+### `parseZip(file)`
+
+```javascript
+const result = await window.JSOS.parseZip(zipFile);
+// { valid, manifest, fileSize, fileCount, installAction, existingVersion, error }
+```
+
+### `installApp(file)`
+
+```javascript
+const result = await window.JSOS.installApp(zipFile);
+```
+
+### `uninstallApp(appId, deleteData?)`
+
+```javascript
+await window.JSOS.uninstallApp('my-app', true); // 删除数据
+```
+
+## Dock 设置
+
+### `getDockSettings()`
+
+```javascript
+const { position } = await window.JSOS.getDockSettings();
+```
+
+### `setDockSettings(settings)`
+
+```javascript
+await window.JSOS.setDockSettings({ position: 'left' });
+```
+
+## 代理设置
+
+代理 API 允许应用配置和使用 CORS 代理服务，用于访问跨域接口。
+
+### `getProxyConfig()`
+
+获取当前代理配置。
+
+```javascript
+const config = await window.JSOS.getProxyConfig();
+// { url: 'https://...', key: '...' } 或 null
+```
+
+### `setProxyConfig(config)`
+
+设置代理配置。
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `config.url` | string | ✓ | 代理服务地址（Cloudflare Worker 部署地址） |
+| `config.key` | string | - | API 认证密钥（可选） |
+
+```javascript
+await window.JSOS.setProxyConfig({
+  url: 'https://cors-proxy.example.com',
+  key: 'your-api-key'  // 可选
+});
+```
+
+### `deleteProxyConfig()`
+
+删除代理配置。
+
+```javascript
+await window.JSOS.deleteProxyConfig();
+```
+
+### `proxyFetch(url, options?)`
+
+通过代理发起跨域请求。
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `url` | string | ✓ | 目标 URL（不含代理前缀） |
+| `options` | object | - | fetch 选项（method, headers, body 等） |
+
+返回值：`{ ok, status, statusText, headers, data }`
+
+```javascript
+// GET 请求
+const result = await window.JSOS.proxyFetch('https://api.example.com/data');
+if (result.ok) {
+  const data = JSON.parse(result.data);
+  console.log(data);
+}
+
+// POST 请求
+const result = await window.JSOS.proxyFetch('https://api.example.com/data', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ key: 'value' })
+});
+```
+
+**使用场景：**
+- 访问跨域 API 接口
+- 从外部服务下载文件
+- 与其他 Web 服务集成
+
+**注意事项：**
+- 代理配置通过 设置 → 代理 进行管理
+- 未配置代理时，此 API 会返回错误
+- 响应体以文本形式返回
+
+## 数据管理
+
+### `exportAllData()`
+
+导出系统所有 IndexedDB 数据为 JSON 对象。可用于创建系统备份。
+
+```javascript
+const data = await window.JSOS.exportAllData();
+// { _version: 1, databases: { 'jsos-apps': {...}, 'jsos-widgets': {...}, 'jsos-workspaces': {...} } }
+```
+
+导出并下载为文件：
+
+```javascript
+const data = await window.JSOS.exportAllData();
+const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+const url = URL.createObjectURL(blob);
+const a = document.createElement('a');
+a.href = url;
+a.download = `jsos-backup-${new Date().toISOString().slice(0, 10)}.json`;
+a.click();
+URL.revokeObjectURL(url);
+```
+
+### `importAllData(data)`
+
+从 JSON 对象导入数据，**清空所有现有数据后恢复**。
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `data` | Object | ✓ | 从 `exportAllData()` 返回的数据对象 |
+
+> **注意：** 此操作不可逆，会删除所有现有数据。导入成功后需刷新系统使数据生效。
+
+```javascript
+const result = await window.JSOS.importAllData(data);
+if (result.success) {
+  // 导入成功，请刷新系统使数据生效
+}
+```
+
+## 系统控制
+
+### `restart()`
+
+重启 JSOS 系统（刷新父窗口页面）。适用于数据导入/清空后需要刷新系统的场景。
+
+```javascript
+await window.JSOS.restart();
+```
+
+### `clearAllData()`
+
+清空所有 IndexedDB 数据库，还原系统到初始状态。执行后会自动刷新页面。
+
+> **注意：** 此操作不可逆，会删除所有应用、工作区、壁纸、小组件和用户数据。
+
+```javascript
+const result = await window.JSOS.clearAllData();
+if (result.success) {
+  // 数据已清空，系统将自动刷新
+}
+```

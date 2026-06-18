@@ -1,0 +1,63 @@
+---
+title: 内置应用
+description: JSOS 预装应用介绍
+icon: Building2
+---
+
+# 内置应用
+
+JSOS 预装了几个应用，开箱即用。
+
+## 终端 (`dev.jsos.terminal`)
+
+基于 `sh` 的交互式 Shell。你可以用它：
+
+```bash
+ls -la
+cd workspace/apps
+npm install
+node --version
+```
+
+> 所有命令都在 WebContainer 沙箱中执行，不会影响你的电脑。
+
+## Node.js REPL (`dev.jsos.nodejs-repl`)
+
+交互式 Node.js 运行环境，适合快速测试代码片段：
+
+```javascript
+const arr = [1, 2, 3, 4, 5]
+arr.filter(x => x % 2 === 0).map(x => x * 2)
+// → [4, 8]
+```
+
+## 文件管理器 (`dev.jsos.filemanager`)
+
+浏览系统文件，查看应用代码和用户数据。支持：
+
+- 文件夹导航
+- 文件查看
+- 应用目录浏览
+
+## 应用管理器 (`dev.jsos.appmanager`)
+
+管理已安装的应用。提供：
+
+- 已安装应用列表
+- 应用详情查看
+- 安装新应用（从 ZIP、GitHub URL 等）
+- 卸载应用
+- 添加小组件
+
+## 设置 (`dev.jsos.settings`)
+
+系统设置应用，目前支持：
+
+- **壁纸** — 更换当前工作区壁纸
+- **语言** — 切换系统语言（中文 / English）
+
+## 文档 (`dev.jsos.docs`)
+
+你现在正在看的就是文档应用。它本身也是一个 JSOS 应用，使用 fumadocs 构建。
+
+> 这些内置应用也是用同样的 ZIP 格式打包的，和第三方应用没有任何区别。你可以参考它们的结构来学习应用开发。

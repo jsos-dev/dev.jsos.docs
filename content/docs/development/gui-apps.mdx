@@ -1,0 +1,113 @@
+---
+title: GUI 应用开发
+description: 开发带图形界面的 JSOS 应用
+icon: Code
+---
+
+# GUI 应用开发
+
+GUI 应用通过 HTTP 提供服务，JSOS 用 iframe 加载显示。你可以使用任何能启动 HTTP 服务的 Node.js 框架。
+
+## 生命周期
+
+```
+点击图标
+  ↓
+创建窗口 + 终端（后台）
+  ↓
+挂载文件到 WebContainer
+  ↓
+执行 installCommand（npm install）
+  ↓
+执行 startCommand（node server.js）
+  ↓
+服务就绪 → iframe 加载 URL
+  ↓
+关闭窗口 → 终止进程
+```
+
+启动过程中窗口会显示一个 SplashScreen（应用图标 + 加载状态），服务就绪后自动切换到应用界面。
+
+## 窗口底部终端
+
+GUI 窗口底部有一个可折叠的终端面板，显示应用的 stdout/stderr 输出。开发调试时可以展开查看 `console.log` 和错误信息。
+
+## 环境变量
+
+应用启动时自动注入以下变量：
+
+| 变量 | 说明 |
+|------|------|
+| `PORT` | 系统分配的端口号，用这个端口启动 HTTP 服务 |
+| `DATA_DIR` | 数据持久化目录，应用数据写在这里 |
+| `APP_DIR` | 应用代码目录 |
+| `LANG` | 系统语言（`zh-CN` / `en`） |
+
+**永远不要硬编码端口号**，用 `process.env.PORT` 获取：
+
+```javascript
+const port = process.env.PORT;
+app.listen(port);
+```
+
+## 多开共享
+
+同一 GUI 应用**多次打开共享一个服务器**。所有的窗口共享同一个 `localStorage` 和进程状态。
+
+## 使用 JSOS API
+
+GUI 应用**的前端页面**（iframe 中的浏览器环境）可以通过 `window.JSOS` 调用系统功能。参考 [JSOS API 参考](/docs/reference/jsos-api)。
+
+## 使用前端框架
+
+你可以使用任何前端框架——React、Vue、Solid、Svelte，或者纯 HTML/CSS/JS。只需要确保构建产物能通过 HTTP 服务正确返回。
+
+> **推荐：** 使用 **React** + **coss-ui** 组件库可以让应用界面与系统 UI 更统一。coss-ui 与 JSOS 系统组件同源，提供按钮、对话框、菜单、输入框等组件，支持暗色/亮色主题自动切换。
+
+框架构建产物（`dist/` 目录）可以用 Express 静态文件中间件服务：
+
+```javascript
+import express from 'express';
+const app = express();
+app.use(express.static('dist'));
+app.listen(process.env.PORT);
+```
+
+也可以在 `installCommand` 中加入构建步骤：
+
+```json
+"installCommand": "npm install && npm run build",
+"startCommand": "node server.js"
+```
+
+## 自适应系统主题与语言
+
+GUI 应用应监听系统的主题和语言变化，自动更新前端 UI，以保持与系统外观一致。
+
+### 监听主题切换
+
+```javascript
+window.JSOS.onThemeChange((theme) => {
+  // theme: 'light' | 'dark'
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+});
+```
+
+结合 coss-ui 时，主题切换会自动通过 CSS 变量生效，无需手动处理。
+
+### 监听语言切换
+
+```javascript
+window.JSOS.onLocaleChange((locale) => {
+  // locale: 'zh-CN' | 'en'
+  // 更新界面文案
+});
+```
+
+应用启动时也可以通过 `process.env.LANG` 环境变量获取初始语言。建议在应用前端初始化时调用 `getLocale()` 获取当前语言，并通过 `onLocaleChange` 监听后续切换。
+
+## 调试技巧
+
+- 窗口底部的终端面板会实时显示进程输出
+- 在应用代码中添加 `console.log`，输出会出现在终端面板
+- 检查 web 请求可以在应用代码中添加 express 中间件打印日志

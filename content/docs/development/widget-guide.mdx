@@ -1,0 +1,127 @@
+---
+title: 小组件开发
+description: 为 GUI 应用添加桌面小组件
+icon: LayoutDashboard
+---
+
+# 小组件开发
+
+小组件是浮动在桌面上的小型面板，显示应用的特定视图，方便快速浏览和操作。
+
+## 声明小组件
+
+在 `package.json` 的 `jsos` 字段中添加 `widgets` 数组：
+
+```json
+{
+  "jsos": {
+    "widgets": [
+      {
+        "id": "todo-list",
+        "name": "Todo List",
+        "description": "显示最近的待办事项",
+        "cols": 3,
+        "rows": 5,
+        "url": "/#/widget/todo-list",
+        "icon": "icon.svg"
+      }
+    ]
+  }
+}
+```
+
+### 字段说明
+
+| 字段 | 类型 | 必须 | 说明 |
+|------|------|------|------|
+| `id` | string | ✓ | 小组件 ID（应用内唯一） |
+| `name` | string / object | ✓ | 显示名称。支持多语言对象格式（见下方说明） |
+| `description` | string / object | - | 描述（显示在添加弹窗）。支持多语言对象格式 |
+| `cols` | number | ✓ | 网格宽度 |
+| `rows` | number | ✓ | 网格高度 |
+| `url` | string | ✓ | 小组件页面 URL（相对于应用根路径）。可以是 hash 路径（如 `/#/widget/todo-list`）或普通路径，由应用的路由设计决定 |
+| `icon` | string | - | 小组件图标 |
+| `background` | string / object | - | 小组件背景模式。见下方 [背景配置](#背景配置) |
+
+### 背景配置
+
+控制小组件内容区域的背景外观：
+
+```json
+// 磨砂玻璃（默认）
+"background": "frosted"
+
+// 全透明
+"background": "transparent"
+
+// 实色背景
+"background": "solid"
+
+// 自定义透明度/模糊度（仅 frosted）
+"background": {
+  "type": "frosted",
+  "opacity": 80,
+  "blur": 12
+}
+```
+
+| 模式 | 说明 |
+|------|------|
+| `frosted`（默认） | `color-mix(background × opacity%)` + `backdrop-filter: blur(Npx)`，壁纸磨砂透出 |
+| `transparent` | 完全透明，壁纸直接显示 |
+| `solid` | 实色背景，最高可读性 |
+
+### 多语言支持
+
+与应用的 `name` / `description` 一样，小组件的 `name` 和 `description` 也支持国际化：
+
+```json
+{
+  "name": { "en": "Todo List", "zh-CN": "待办列表" },
+  "description": { "en": "Recent todos", "zh-CN": "显示最近的待办事项" }
+}
+```
+
+- 传字符串 → 所有语言显示相同（向后兼容）
+- 传对象 → 根据系统语言自动选择，fallback `en` → 第一个值
+- 语言切换时桌面小组件标题栏和添加弹窗自动更新
+
+`cols` 和 `rows` 是标准尺寸格式。旧格式 `"width": 320, "height": 480`（像素值）和 `"size": "3x5"` 字符串仍受兼容支持，系统会自动换算，但**不推荐在新应用中使用**。
+
+网格每个单元格 104px（96px 内容 + 8px 间距）。
+
+| cols x rows | 像素 |
+|-------------|------|
+| 2 × 2 | 208 × 208 |
+| 3 × 3 | 312 × 312 |
+| 3 × 5 | 312 × 520 |
+
+## 应用端实现
+
+小组件的 `url` 指向应用提供的任意 Web 页面，由应用的路由逻辑决定如何渲染。常见方式是通过 hash 路径区分小组件视图和主界面：
+
+```javascript
+// 在应用入口判断路由
+function App() {
+  const route = window.location.hash;
+
+  if (route === '#/widget/todo-list') {
+    return <TodoWidget />;
+  }
+
+  return <MainApp />;
+}
+```
+
+也可以使用普通路径（如 `/widget/todo-list`），只需在服务端路由中正确处理即可。`url` 本质上就是应用 HTTP 服务上的一个 URL，其设计完全由开发者决定。
+
+## 生命周期
+
+- 添加小组件 → 启动应用后台进程（如未运行）
+- 关闭应用窗口 → 小组件**不受影响**，继续运行
+- 移除小组件 → 若无其他窗口/小组件使用，自动停止进程
+- 小组件通过虚拟窗口 ID 保持进程存活
+
+## 示例
+
+一个待办事项应用，主界面是完整的 Web 页面，小组件显示快速任务列表，支持勾选完成和添加新任务。应用通过 URL 路由区分主界面和小组件视图，共享同一份数据。

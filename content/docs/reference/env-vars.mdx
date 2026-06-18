@@ -1,0 +1,47 @@
+---
+title: 环境变量
+description: 应用运行时环境变量参考
+icon: Terminal
+---
+
+# 环境变量
+
+应用启动时自动注入以下环境变量：
+
+| 变量 | 适用 | 说明 |
+|------|------|------|
+| `PORT` | GUI | 分配的端口号（如 `4000`） |
+| `DATA_DIR` | 全部 | 数据持久化目录 |
+| `APP_DIR` | 全部 | 应用代码目录 |
+| `LANG` | 全部 | 系统语言（`zh-CN` / `en`） |
+
+## PORT（仅 GUI 应用）
+
+```javascript
+const port = process.env.PORT;
+app.listen(port);
+```
+
+不要硬编码端口号，**始终**使用 `process.env.PORT`。
+
+## DATA_DIR
+
+应用专属数据目录。数据自动持久化，刷新后恢复。
+
+```javascript
+import { writeFile, readFile } from 'fs/promises';
+import { join } from 'path';
+
+const dataFile = join(process.env.DATA_DIR, 'notes.json');
+await writeFile(dataFile, JSON.stringify(notes));
+const saved = JSON.parse(await readFile(dataFile, 'utf-8'));
+```
+
+## LANG
+
+根据系统语言设置，应用可据此决定显示语言：
+
+```javascript
+const lang = process.env.LANG;
+const greeting = lang.startsWith('zh') ? '你好' : 'Hello';
+```

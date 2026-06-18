@@ -1,0 +1,88 @@
+---
+title: WebContainer 限制
+description: 了解 WebContainer 能做什么、不能做什么
+icon: Zap
+---
+
+# WebContainer 限制
+
+JSOS 基于 WebContainer 技术，在浏览器中运行 Node.js。但浏览器不是真正的操作系统，有一些限制需要了解。
+
+## 数据存储
+
+**所有数据存储在浏览器本地（IndexedDB）。**
+
+- 清除浏览器数据 → 所有应用和数据丢失
+- 换一台电脑 → 没有任何数据
+- 目前不支持云同步
+
+建议定期备份重要数据。
+
+## 网络请求（CORS）
+
+应用执行 HTTP 请求时，目标接口需要**支持跨域访问**（CORS）。
+
+```javascript
+// 如果目标 API 不支持 CORS — 会报错
+const res = await fetch('https://api.example.com/data');
+```
+
+**解决方案：**
+- 如果目标接口支持 CORS → 直接调用
+- 如果不支持 → 可以通过 JSOS 的**中转接口**解决跨域问题
+
+> 在 JSOS 中开发的应用发起的网络请求是在 WebContainer 环境中执行的，该环境本身是一个 `<iframe>` 沙箱，同样受浏览器同源策略限制。
+
+## npm 包兼容性
+
+WebContainer 支持大部分纯 JavaScript 的 npm 包，但**不支持需要原生编译（C/C++ 扩展）的包**。
+
+| 包类型 | 支持 | 示例 |
+|--------|------|------|
+| 纯 JS | ✅ | express, chalk, react, lodash, axios |
+| 纯 WASM | ✅ | sharp (wasm 版本), sql.js |
+| 需要 C++ 编译 | ❌ | node-canvas, bcrypt (原生), better-sqlite3 |
+
+**替代方案：**
+- `bcrypt` → `bcryptjs`（纯 JS）
+- `sharp` → `sharp` 的 WASM 版本
+- `better-sqlite3` → `sql.js`（WASM）
+- `canvas` → 使用 SVG 或纯 JS 渲染
+
+## SharedArrayBuffer 要求
+
+WebContainer 需要 `SharedArrayBuffer` 支持，因此浏览器必须正确设置以下 HTTP 头：
+
+```
+Cross-Origin-Embedder-Policy: require-corp
+Cross-Origin-Opener-Policy: same-origin
+```
+
+现代浏览器（Chrome/Edge/Firefox）均支持。如果看到 SharedArrayBuffer 相关的错误，说明页面缺少这些头。
+
+## 其他限制
+
+| 限制 | 说明 |
+|------|------|
+| **浏览器兼容性** | 需要支持 SharedArrayBuffer 的现代浏览器 |
+| **不支持 Docker** | 无法运行 Docker 容器 |
+| **不支持系统级操作** | 无法修改系统文件、安装系统包 |
+| **单进程** | 不支持创建子进程（fork） |
+| **无 GPU 加速** | 图形相关操作受限（但 CSS/Canvas 正常） |
+| **端口受限** | 只能使用系统分配的端口 |
+| **网络端口** | 不能监听外部端口的入站连接 |
+| **文件系统** | 只能操作 workdir 内的文件 |
+
+## 总结
+
+**WebContainer 适合：**
+- 开发测试 Node.js Web 应用
+- 运行 CLI 工具和脚本
+- 学习 Node.js / 前端框架
+- 快速原型验证
+
+**WebContainer 不适合：**
+- 生产环境部署（数据不安全、性能受限）
+- 需要系统级权限的软件
+- 需要 GPU 或原生模块的应用
+- 大规模文件存储

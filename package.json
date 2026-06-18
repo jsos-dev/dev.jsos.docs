@@ -1,0 +1,72 @@
+{
+  "name": "dev.jsos.docs",
+  "version": "1.1.8",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "scripts": {
+    "dev": "waku dev",
+    "build": "waku build",
+    "start": "waku start",
+    "types:check": "fumadocs-mdx && tsc --noEmit",
+    "postinstall-removed": "fumadocs-mdx",
+    "jsh:install": "(cd node_modules >/dev/null 2>&1) || npm install",
+    "jsh:start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "@takumi-rs/image-response": "^1.8.1",
+    "@types/mdx": "^2.0.14",
+    "@types/node": "^25.9.2",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "fumadocs-core": "16.10.2",
+    "fumadocs-mdx": "15.0.12",
+    "fumadocs-ui": "16.10.2",
+    "lucide-react": "^1.17.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "react-server-dom-webpack": "^19.2.7",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.16",
+    "waku": "1.0.0-beta.2"
+  },
+  "jsos": {
+    "id": "dev.jsos.docs",
+    "name": {
+      "en": "Docs",
+      "zh-CN": "文档"
+    },
+    "description": {
+      "en": "JSOS development documentation and API reference",
+      "zh-CN": "JSOS 开发文档和 API 参考"
+    },
+    "icon": "icon.svg",
+    "startCommand": "npm run jsh:start",
+    "installCommand": "npm run jsh:install",
+    "defaultWidth": 1400,
+    "defaultHeight": 800,
+    "widgets": [
+      {
+        "id": "doc-nav",
+        "name": {
+          "en": "Doc Nav",
+          "zh-CN": "文档导航"
+        },
+        "description": {
+          "en": "Quick documentation navigation",
+          "zh-CN": "文档快速导航"
+        },
+        "cols": 3,
+        "rows": 4,
+        "url": "/widget-nav.html",
+        "icon": "icon.svg"
+      }
+    ]
+  }
+}

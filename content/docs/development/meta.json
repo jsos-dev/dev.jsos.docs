@@ -1,0 +1,4 @@
+{
+  "title": "开发指南",
+  "pages": ["getting-started", "gui-apps", "cli-apps", "widget-guide", "data-persistence"]
+}
