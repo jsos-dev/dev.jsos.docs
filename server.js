@@ -1,15 +1,31 @@
-import express from 'express';
-import { existsSync, readFileSync } from 'fs';
-import { join } from 'path';
+import { createServer } from 'http';
+import { existsSync, readFileSync, createReadStream, statSync } from 'fs';
+import { join, extname } from 'path';
 import { fileURLToPath } from 'url';
+import { parse } from 'url';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = join(__dirname, 'dist', 'public');
 
-const app = express();
-
-app.use(express.static(PUBLIC_DIR));
+const MIME_TYPES = {
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'application/javascript',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+  '.txt': 'text/plain',
+  '.xml': 'application/xml',
+  '.pdf': 'application/pdf',
+  '.zip': 'application/zip'
+};
 
 const searchIndexPath = join(PUBLIC_DIR, 'api', 'search.json');
 let searchDocuments = null;
@@ -22,10 +38,31 @@ try {
   console.warn('No search index found');
 }
 
-app.get('/api/search', (req, res) => {
-  const query = (req.query.query || '').toLowerCase().trim();
+function serveStaticFile(res, filePath) {
+  const ext = extname(filePath).toLowerCase();
+  const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+  try {
+    const stat = statSync(filePath);
+    if (stat.isFile()) {
+      res.writeHead(200, { 'Content-Type': contentType });
+      createReadStream(filePath).pipe(res);
+      return true;
+    }
+  } catch (err) {
+    return false;
+  }
+  return false;
+}
+
+function handleSearchAPI(req, res) {
+  const parsedUrl = parse(req.url, true);
+  const query = (parsedUrl.query.query || '').toLowerCase().trim();
+
   if (!query || !searchDocuments) {
-    return res.json([]);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify([]));
+    return;
   }
 
   const terms = query.split(/\s+/).filter(Boolean);
@@ -48,25 +85,49 @@ app.get('/api/search', (req, res) => {
     .slice(0, 10)
     .map(({ content, score, ...rest }) => rest);
 
-  res.json(results);
-});
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(results));
+}
 
-app.get('*', (req, res) => {
-  const path = req.path === '/' ? '/index.html' : req.path;
+function handleStaticFiles(req, res) {
+  const parsedUrl = parse(req.url, true);
+  let path = parsedUrl.pathname;
+
+  if (path === '/') {
+    path = '/index.html';
+  }
+
   const staticFile = join(PUBLIC_DIR, path);
 
   if (existsSync(staticFile) && !existsSync(join(PUBLIC_DIR, path + '/index.html'))) {
-    return res.sendFile(staticFile);
+    if (serveStaticFile(res, staticFile)) return;
   }
 
   const indexPath = join(PUBLIC_DIR, path, 'index.html');
   if (existsSync(indexPath)) {
-    return res.sendFile(indexPath);
+    if (serveStaticFile(res, indexPath)) return;
   }
 
-  res.sendFile(join(PUBLIC_DIR, '404.html'));
+  const notFoundPath = join(PUBLIC_DIR, '404.html');
+  if (existsSync(notFoundPath)) {
+    serveStaticFile(res, notFoundPath);
+  } else {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
+  }
+}
+
+const server = createServer((req, res) => {
+  if (req.method === 'GET' && req.url.startsWith('/api/search')) {
+    handleSearchAPI(req, res);
+  } else if (req.method === 'GET') {
+    handleStaticFiles(req, res);
+  } else {
+    res.writeHead(405, { 'Content-Type': 'text/plain' });
+    res.end('Method Not Allowed');
+  }
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Docs server running on port ${PORT}`);
 });
