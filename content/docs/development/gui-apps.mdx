@@ -42,6 +42,8 @@ GUI 窗口底部有一个可折叠的终端面板，显示应用的 stdout/stder
 | `DATA_DIR` | 数据持久化目录，应用数据写在这里 |
 | `APP_DIR` | 应用代码目录 |
 | `LANG` | 系统语言（`zh-CN` / `en`） |
+| `PROXY_URL` | CORS 代理服务地址 |
+| `PROXY_KEY` | CORS 代理 API Key（可选） |
 
 **永远不要硬编码端口号**，用 `process.env.PORT` 获取：
 

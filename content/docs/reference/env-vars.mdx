@@ -14,6 +14,8 @@ icon: Terminal
 | `DATA_DIR` | 全部 | 数据持久化目录 |
 | `APP_DIR` | 全部 | 应用代码目录 |
 | `LANG` | 全部 | 系统语言（`zh-CN` / `en`） |
+| `PROXY_URL` | 全部 | CORS 代理服务地址 |
+| `PROXY_KEY` | 全部 | CORS 代理 API Key（可选） |
 
 ## PORT（仅 GUI 应用）
 
@@ -44,4 +46,18 @@ const saved = JSON.parse(await readFile(dataFile, 'utf-8'));
 ```javascript
 const lang = process.env.LANG;
 const greeting = lang.startsWith('zh') ? '你好' : 'Hello';
+```
+
+## PROXY_URL / PROXY_KEY
+
+CORS 代理配置，用于跨域请求：
+
+```javascript
+const proxyUrl = process.env.PROXY_URL; // 如 'https://cors-proxy.jsos.dev'
+const proxyKey = process.env.PROXY_KEY; // 如 'hello-world'（可选）
+
+// 通过代理请求跨域接口
+const response = await fetch(`${proxyUrl}/${targetUrl}`, {
+  headers: { 'x-cors-proxy-key': proxyKey }
+});
 ```
