@@ -69,8 +69,21 @@ const apps = await window.JSOS.getApps();
 
 ```javascript
 const info = await window.JSOS.getAppInfo('my-app');
-// { id, name, description, icon, version, type, isSystem, port, isRunning, serverUrl }
+// {
+//   id, name, description, icon, version, type, isSystem,
+//   port, isRunning, serverUrl, installedAt,
+//   defaultWidth, defaultHeight, widgets,
+//   author, contributors, repository, bugs,
+//   appDir, dataDir, sourceDirExists, dataDirExists,
+// }
 ```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `appDir` | `string \| null` | 应用源码目录绝对路径 |
+| `dataDir` | `string \| null` | 应用数据目录绝对路径 |
+| `sourceDirExists` | `boolean` | 源码目录是否存在（应用已启动过则为 true） |
+| `dataDirExists` | `boolean` | 数据目录是否存在 |
 
 ### `openApp(appId, options?)`
 
