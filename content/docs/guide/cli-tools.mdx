@@ -1,0 +1,288 @@
+---
+title: CLI 命令行工具
+description: 在终端中使用 jsos 命令管理系统
+icon: Terminal
+---
+
+# CLI 命令行工具
+
+JSOS v0.6.29+ 提供了命令行工具 `jsos`，让你可以在终端中直接管理系统，无需通过图形界面。
+
+## 工作原理
+
+CLI 工具通过后台运行的 **Daemon 进程**与系统通信：
+
+```
+CLI 工具 (jsos)
+    ↓ HTTP POST /api/jsos
+Daemon (Express, port 1993)
+    ↓ stdout/stdin 双向通信
+主窗口 (浏览器)
+    ↓ 执行 API 调用
+    ↓ 返回结果
+CLI 工具
+```
+
+Daemon 进程在 JSOS 启动时自动运行，提供 HTTP API 端点供 CLI 工具调用。
+
+## 快速开始
+
+在 JSOS 终端中直接使用 `jsos` 命令：
+
+```bash
+# 查看系统信息
+jsos api getSystemInfo
+
+# 列出已安装应用
+jsos app list
+
+# 发送 Toast 通知
+jsos toast --title "Hello from CLI" --type success
+```
+
+## 全局选项
+
+| 选项 | 说明 | 默认值 |
+|------|------|--------|
+| `--port <port>` | Daemon 端口 | `1993` |
+
+## 命令参考
+
+### 通知
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `toast` | 发送 Toast 通知 | `jsos toast --title "完成" --type success` |
+
+**toast 参数：**
+
+| 参数 | 必填 | 说明 |
+|------|------|------|
+| `--title <text>` | ✓ | 标题 |
+| `--description <text>` | - | 描述 |
+| `--type <type>` | - | 类型：`info`、`success`、`warning`、`error` |
+| `--duration <ms>` | - | 显示时长（毫秒），默认 3000 |
+
+```bash
+jsos toast --title "下载完成" --description "文件已保存" --type success
+jsos toast --title "警告" --type warning --duration 5000
+```
+
+### 应用管理
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `app list` | 列出已安装应用 | `jsos app list` |
+| `app info <appId>` | 查看应用详情 | `jsos app info dev.jsos.terminal` |
+| `app open <appId>` | 打开应用 | `jsos app open dev.jsos.terminal` |
+| `app open <appId> --route <route>` | 打开应用并导航 | `jsos app open dev.jsos.settings --route /wallpaper` |
+| `app close <appId>` | 关闭应用 | `jsos app close dev.jsos.terminal` |
+| `app running <appId>` | 检查应用是否运行 | `jsos app running dev.jsos.terminal` |
+| `app install <file>` | 安装应用 | `jsos app install ./my-app.zip` |
+| `app uninstall <appId>` | 卸载应用 | `jsos app uninstall my-app` |
+| `app uninstall <appId> --delete-data` | 卸载并删除数据 | `jsos app uninstall my-app --delete-data` |
+
+```bash
+# 列出所有应用（运行中的应用会标记 ●）
+jsos app list
+
+# 安装本地 ZIP 文件
+jsos app install ./my-app.zip
+
+# 打开设置应用并导航到壁纸页面
+jsos app open dev.jsos.settings --route /wallpaper
+```
+
+### 工作区
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `workspace list` | 列出工作区 | `jsos workspace list` |
+| `workspace current` | 查看当前工作区 | `jsos workspace current` |
+| `workspace create <name>` | 创建工作区 | `jsos workspace create "工作"` |
+| `workspace switch <id>` | 切换工作区 | `jsos workspace switch ws-123` |
+| `workspace delete <id>` | 删除工作区 | `jsos workspace delete ws-123` |
+| `workspace rename <id> <name>` | 重命名工作区 | `jsos workspace rename ws-123 "办公室"` |
+
+```bash
+# 列出所有工作区（当前工作区会标记 ●）
+jsos workspace list
+
+# 创建新工作区
+jsos workspace create "项目开发"
+```
+
+### 壁纸
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `wallpaper get` | 获取当前壁纸配置 | `jsos wallpaper get` |
+| `wallpaper get --workspace <id>` | 获取指定工作区壁纸 | `jsos wallpaper get --workspace ws-123` |
+| `wallpaper reset` | 重置为默认壁纸 | `jsos wallpaper reset` |
+| `wallpaper reset --workspace <id>` | 重置指定工作区壁纸 | `jsos wallpaper reset --workspace ws-123` |
+
+```bash
+# 查看当前壁纸配置
+jsos wallpaper get
+
+# 重置当前工作区壁纸
+jsos wallpaper reset
+```
+
+### 语言设置
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `locale get` | 获取当前语言 | `jsos locale get` |
+| `locale set <lang>` | 设置语言 | `jsos locale set zh-CN` |
+
+```bash
+# 查看当前语言
+jsos locale get
+
+# 切换到英文
+jsos locale set en
+```
+
+### 主题设置
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `theme get` | 获取当前主题 | `jsos theme get` |
+| `theme set <mode>` | 设置主题 | `jsos theme set dark` |
+
+```bash
+# 切换到暗色主题
+jsos theme set dark
+
+# 跟随系统主题
+jsos theme set system
+```
+
+### 代理设置
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `proxy get` | 获取代理配置 | `jsos proxy get` |
+| `proxy set <url>` | 设置代理 | `jsos proxy set https://proxy.example.com` |
+| `proxy set <url> --key <key>` | 设置代理（带密钥） | `jsos proxy set https://proxy.example.com --key xxx` |
+| `proxy delete` | 删除代理配置 | `jsos proxy delete` |
+
+```bash
+# 配置 CORS 代理
+jsos proxy set https://cors-proxy.jsos.dev
+
+# 删除代理配置
+jsos proxy delete
+```
+
+### Dock 设置
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `dock get` | 获取 Dock 设置 | `jsos dock get` |
+
+### 终端背景
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `terminal-bg get` | 获取终端背景设置 | `jsos terminal-bg get` |
+
+### 数据管理
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `data export` | 导出所有系统数据 | `jsos data export` |
+
+```bash
+# 导出数据（输出 JSON）
+jsos data export > backup.json
+```
+
+### 系统控制
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `restart` | 重启 JSOS 系统 | `jsos restart` |
+
+### 通用 API 调用
+
+| 命令 | 说明 | 示例 |
+|------|------|------|
+| `api <type> [payload]` | 直接调用任意 API | `jsos api getApps` |
+
+```bash
+# 调用任意 JSOS API
+jsos api getApps
+jsos api getWorkspaces
+jsos api getAppInfo '{"appId":"dev.jsos.terminal"}'
+```
+
+## 实用示例
+
+### 批量操作
+
+```bash
+# 列出所有运行中的应用
+jsos app list | grep "●"
+
+# 创建工作区并切换
+jsos workspace create "新项目"
+jsos workspace switch $(jsos workspace list | grep "新项目" | awk '{print $1}')
+```
+
+### 脚本自动化
+
+```bash
+#!/bin/bash
+# 备份工作区配置
+jsos workspace list > workspaces.txt
+jsos wallpaper get > wallpaper.json
+jsos data export > system-data.json
+```
+
+### 系统管理
+
+```bash
+# 检查系统状态
+jsos api getSystemInfo
+jsos app list
+jsos workspace list
+
+# 重置系统
+jsos wallpaper reset
+jsos theme set system
+jsos locale set zh-CN
+```
+
+## 故障排除
+
+### 无法连接 Daemon
+
+如果遇到 `ECONNREFUSED` 错误，说明 Daemon 进程未运行：
+
+```bash
+# 检查 Daemon 状态
+jsos api getSystemInfo
+
+# 如果 Daemon 未运行，重启 JSOS 系统
+# 在图形界面中刷新页面即可
+```
+
+### 命令无响应
+
+如果命令长时间无响应，可能是 Daemon 处理超时：
+
+```bash
+# 使用默认超时（30 秒）
+jsos api getApps
+
+# 如果数据量大，可能需要等待
+jsos data export
+```
+
+## 相关文档
+
+- [JSOS API 参考](/docs/reference/jsos-api) — 完整的 API 列表
+- [应用安装](/docs/guide/installing-apps) — 通过图形界面安装应用
+- [基本操作](/docs/guide/basic-operations) — 图形界面操作指南
