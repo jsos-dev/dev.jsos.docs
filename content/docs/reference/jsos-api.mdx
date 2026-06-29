@@ -135,6 +135,14 @@ await window.JSOS.openAppWithArgs('dev.jsos.terminal', {
 await window.JSOS.closeApp('my-app');
 ```
 
+### `closeAppWindow()`
+
+关闭当前调用者的窗口（仅关闭发起调用的 iframe 所在窗口），不影响同应用的其他窗口。
+
+```javascript
+await window.JSOS.closeAppWindow();
+```
+
 ### `isAppRunning(appId)`
 
 检查应用是否运行。
