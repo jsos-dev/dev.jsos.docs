@@ -468,3 +468,45 @@ if (result.success) {
 const info = await window.JSOS.getSystemInfo();
 // { version: '1.0.0' }
 ```
+
+## 存储信息
+
+### `getStorageInfo()`
+
+获取浏览器存储信息，包括配额、使用量和持久化状态。
+
+```javascript
+const storage = await window.JSOS.getStorageInfo();
+// {
+//   quota: 1073741824,      // 总配额（字节）
+//   usage: 52428800,        // 已使用（字节）
+//   usageDetails: {         // 详细使用情况
+//     indexedDB: 41943040,
+//     cache_storage: 10485760,
+//   },
+//   persistent: true        // 是否为持久化存储
+// }
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `quota` | number | 存储总配额（字节） |
+| `usage` | number | 已使用存储（字节） |
+| `usageDetails` | object | 详细使用情况（按存储类型分类） |
+| `persistent` | boolean | 是否为持久化存储（HTTPS 下通常为 `true`） |
+
+**格式化示例：**
+
+```javascript
+function formatBytes(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+const storage = await window.JSOS.getStorageInfo();
+console.log(`已使用: ${formatBytes(storage.usage)} / ${formatBytes(storage.quota)}`);
+console.log(`使用率: ${((storage.usage / storage.quota) * 100).toFixed(1)}%`);
+```
